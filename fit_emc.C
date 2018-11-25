@@ -61,7 +61,7 @@ double myfun3(double *xx, double *par)
 
 
 
-void get_data(int argc,char **argv,double *pars,double *epars,double& chi2,double &ndf,string dirname)
+bool get_data(int argc,char **argv,double *pars,double *epars,double& chi2,double &ndf,string dirname,int index)
 {
 
 	string source = argv[1];
@@ -94,16 +94,15 @@ void get_data(int argc,char **argv,double *pars,double *epars,double& chi2,doubl
 	if(source=="Cs137" || source== "Mn54")
 		max_entries = 82000;
 
-	total_entries = max_entries;	
-		
+	if(max_entries*(index+1) > total_entries) return false;
 	
-	t->Draw("totalPE>>h(200,0,0)","totalPE>0","",total_entries,total_entries-max_entries);
+	t->Draw("totalPE>>h(200,0,0)","totalPE>0","",max_entries*(index+1),max_entries*index);
 	TH1F *h = (TH1F*)gDirectory->Get("h");
 
 	int maxbin = h->GetMaximumBin();
 	double maxbincenter = h->GetBinCenter(maxbin);
 
-	t->Draw(Form("totalPE>>h(100,%i,%i)",int(maxbincenter-100),int(maxbincenter+100)),"","",total_entries,total_entries-max_entries);	
+	t->Draw(Form("totalPE>>h(100,%i,%i)",int(maxbincenter-100),int(maxbincenter+100)),"","",max_entries*(index+1),max_entries*index);	
 	h = (TH1F*)gDirectory->Get("h");
 	//h->Fit("gaus");
 	
@@ -140,7 +139,7 @@ void get_data(int argc,char **argv,double *pars,double *epars,double& chi2,doubl
 	f->SetParameters(pars);
 
 	f->SetParNames("C","#alpha","#mu","#sigma","#beta","#lambda","#gamma");
-	t->Draw(Form("totalPE>>h(%i,%i,%i)",int(5*sigma),int(mean-5*sigma),int(mean-5*sigma)+int(5*sigma)*2),"","",total_entries,total_entries-max_entries);	
+	t->Draw(Form("totalPE>>h(%i,%i,%i)",int(5*sigma),int(mean-5*sigma),int(mean-5*sigma)+int(5*sigma)*2),"","",max_entries*(index+1),max_entries*index);	
 	//t->Draw(Form("totalPE>>h(%i,%i,%i)",int(5*sigma),int(mean-6*sigma),int(mean-6*sigma)+int(5*sigma)*2),"","",max_entries);	
 	//t->Draw(Form("totalPE>>h(%i,%i,%i)",int(5*sigma),int(mean-6*sigma),int(mean-6*sigma)+int(5*sigma)*2),"","");	
 	h = (TH1F*)gDirectory->Get("h");
@@ -205,6 +204,8 @@ void get_data(int argc,char **argv,double *pars,double *epars,double& chi2,doubl
 		cout << pars[i] <<"\t" << epars[i] <<"\t";
 	}
 
+	return true;
+
 }
 int main(int argc,char **argv){
 
@@ -217,18 +218,21 @@ int main(int argc,char **argv){
 	string Z = argv[3];	
 
 	string dirname = "/junofs/production/public/users/zhangfy/non-uniform/offline_J17v1r1-Pre1/Examples/Tutorial/share/cls2/"+source+"/"+R+"_"+Z+"/";
-	get_data(argc,argv,pars,epars,chi2,ndf,dirname);
-
 	string filename = dirname+"result_emc";
 	ofstream fout(&filename[0]);
+	int index = 0;
 
-	fout<< chi2 <<"\t"<< ndf <<"\t";
+	while(get_data(argc,argv,pars,epars,chi2,ndf,dirname,index)){
+		
+		fout<< chi2 <<"\t"<< ndf <<"\t";
 
-	for(int i=0;i<7;i++){
-		fout << pars[i] <<"\t" << epars[i] <<"\t";
+		for(int i=0;i<7;i++){
+			fout << pars[i] <<"\t" << epars[i] <<"\t";
+		}
+
+		fout << "\n";
+		index++;
 	}
-
-	fout << "\n";
 
 	return 0;
 }
