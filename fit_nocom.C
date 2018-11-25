@@ -35,8 +35,6 @@ bool get_data(int argc,char **argv,double *pars,double *epars,double& chi2,doubl
     gStyle->SetStatH(0.15);
     TFile *file;
     TF1 *f = new TF1("f",myfun,0,20000,7);
-	pars = new double[7];
-	epars = new double[7];
 
 	TChain *t = new TChain("evt");
 
@@ -65,14 +63,14 @@ bool get_data(int argc,char **argv,double *pars,double *epars,double& chi2,doubl
 	if(source == "K40") edep = 1.4608;
 	
 	//t->Draw("totalPE>>h(200,0,0)",Form("totalPE>0 && TMath::Abs(edep-%f)<0.001",edep),"",max_entries);
-	t->Draw("totalPE>>h(200,0,0)",Form("totalPE>0 && TMath::Abs(edep-%f)<0.001",edep),"");
+	t->Draw("totalPE>>h(200,0,0)",Form("totalPE>0 && TMath::Abs(edep-%f)<0.001",edep),"",max_entries*(index+1),max_entries*index);
 
 	TH1F *h = (TH1F*)gDirectory->Get("h");
 
 	int maxbin = h->GetMaximumBin();
 	double maxbincenter = h->GetBinCenter(maxbin);
 
-	t->Draw(Form("totalPE>>h(100,%i,%i)",int(maxbincenter-100),int(maxbincenter+100)),Form("totalPE>0 && TMath::Abs(edep-%f)<0.0001",edep),"");	
+	t->Draw(Form("totalPE>>h(100,%i,%i)",int(maxbincenter-100),int(maxbincenter+100)),Form("totalPE>0 && TMath::Abs(edep-%f)<0.0001",edep),"",max_entries*(index+1),max_entries*index);	
 	//t->Draw(Form("totalPE>>h(100,%i,%i)",int(maxbincenter-100),int(maxbincenter+100)),Form("totalPE>0 && TMath::Abs(edep-%f)<0.001",edep),"",max_entries);	
 	h = (TH1F*)gDirectory->Get("h");
 	//h->Fit("gaus");
@@ -131,15 +129,16 @@ int main(int argc,char **argv){
     string Z = argv[3];
 
     string dirname = "/junofs/production/public/users/zhangfy/non-uniform/offline_J17v1r1-Pre1/Examples/Tutorial/share/cls2/"+source+"/"+R+"_"+Z+"/";
-    string filename = dirname+"result_emc";
+    string filename = dirname+"result_nocom";
     ofstream fout(&filename[0]);
     int index = 0;
 
-    while(get_data(argc,argv,pars,epars,chi2,ndf,dirname,index)){
+    while(get_data(argc,argv,pars,epars,chi2,ndf,dirname,index))
+	{
 
         fout<< chi2 <<"\t"<< ndf <<"\t";
 
-        for(int i=0;i<1;i++){
+        for(int i=0;i<7;i++){
             fout << pars[i] <<"\t" << epars[i] <<"\t";
         }
 
