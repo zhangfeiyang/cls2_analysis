@@ -61,13 +61,12 @@ double myfun3(double *xx, double *par)
 
 
 
-int main(int argc,char **argv)
+void get_data(int argc,char **argv,double *pars,double *epars,double& chi2,double &ndf,string dirname)
 {
 
 	string source = argv[1];
 	string R = argv[2];	
 	string Z = argv[3];	
-	string dirname = "/junofs/production/public/users/zhangfy/non-uniform/offline_J17v1r1-Pre1/Examples/Tutorial/share/cls2/"+source+"/"+R+"_"+Z+"/";
 
 	TCanvas *c1 = new TCanvas();
     gStyle->SetOptFit(1);
@@ -77,8 +76,6 @@ int main(int argc,char **argv)
     gStyle->SetStatH(0.15);
     TFile *file;
     TF1 *f = new TF1("f",myfun,0,20000,7);
-	double *pars;
-	pars = new double[7];
 
 	TChain *t = new TChain("evt");
 
@@ -149,7 +146,7 @@ int main(int argc,char **argv)
 	h = (TH1F*)gDirectory->Get("h");
 	
 	h->Fit(f,"M","");
-	pars = f->GetParameters();
+	f->GetParameters(pars);
 
 	if(source=="Ge68"){
 		h->Fit(f,"M","",pars[2]-pars[3]*4,pars[2]+pars[3]);
@@ -165,10 +162,13 @@ int main(int argc,char **argv)
 		h->Fit(f,"M","",int(mean-4*sigma),int(mean-5*sigma)+int(5*sigma)*2);
 		h->Fit(f,"M","",int(mean-4*sigma),int(mean-5*sigma)+int(5*sigma)*2);
 	}
-	pars = f->GetParameters();
-	double *epars = f->GetParErrors();
-	int ndf = f->GetNDF();
-	double chi2 = f->GetChisquare();
+
+	f->GetParameters(pars);
+	double *tmps = f->GetParErrors();
+	memcpy(epars,tmps,7*sizeof(double));
+
+	ndf = f->GetNDF();
+	chi2 = f->GetChisquare();
 
     TF1 *f2 = new TF1("f",myfun2,0,20000,7);
     TF1 *f3 = new TF1("f",myfun3,0,20000,7);
@@ -200,8 +200,26 @@ int main(int argc,char **argv)
 	c1->SaveAs(&filename[0]);
 	filename = dirname+"result_emc.png";
 	c1->SaveAs(&filename[0]);
+	
+	for(int i=0;i<7;i++){
+		cout << pars[i] <<"\t" << epars[i] <<"\t";
+	}
 
-	filename = dirname+"result_emc";
+}
+int main(int argc,char **argv){
+
+	double *pars = new double[7];
+	double *epars = new double[7];
+	double chi2;
+	double ndf;
+	string source = argv[1];
+	string R = argv[2];	
+	string Z = argv[3];	
+
+	string dirname = "/junofs/production/public/users/zhangfy/non-uniform/offline_J17v1r1-Pre1/Examples/Tutorial/share/cls2/"+source+"/"+R+"_"+Z+"/";
+	get_data(argc,argv,pars,epars,chi2,ndf,dirname);
+
+	string filename = dirname+"result_emc";
 	ofstream fout(&filename[0]);
 
 	fout<< chi2 <<"\t"<< ndf <<"\t";
