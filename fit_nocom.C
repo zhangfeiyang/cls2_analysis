@@ -20,14 +20,12 @@ double myfun(double *xx, double *par)
     return c*(gaus+exp_c1*exp1+constant);
 }
 
-int main(int argc,char **argv)
+bool get_data(int argc,char **argv,double *pars,double *epars,double& chi2,double &ndf,string dirname,int index)
 {
-	// this is the tess of branch, test
 
 	string source = argv[1];
 	string R = argv[2];	
 	string Z = argv[3];	
-	string dirname = "/junofs/production/public/users/zhangfy/non-uniform/offline_J17v1r1-Pre1/Examples/Tutorial/share/cls2/"+source+"/"+R+"_"+Z+"/";
 
 	TCanvas *c1 = new TCanvas();
     gStyle->SetOptFit(1);
@@ -37,14 +35,16 @@ int main(int argc,char **argv)
     gStyle->SetStatH(0.15);
     TFile *file;
     TF1 *f = new TF1("f",myfun,0,20000,7);
-	double *pars;
 	pars = new double[7];
+	epars = new double[7];
 
 	TChain *t = new TChain("evt");
 
 //	t->Add("/junofs/production/public/users/zhangfy/non-uniform/offline_J17v1r1-Pre1/Examples/Tutorial/share/cls2/Co60/10000_10000/evt_*root");
 	string filename = dirname+"evt_*root";
 	t->Add(&filename[0]);
+	
+	int total_entries = t->GetEntries();
 	
 	int max_entries;
 	if(source=="Ge68" || source == "K40")
@@ -54,6 +54,8 @@ int main(int argc,char **argv)
 
 	if(source=="Cs137" || source== "Mn54")
 		max_entries = 82000;
+	
+	if(max_entries*(index+1) > total_entries) return false;
 
 	float edep;
 	if(source == "Ge68") edep = 1.0219978;
@@ -102,28 +104,48 @@ int main(int argc,char **argv)
 	
 	h->Fit("gaus","M","");
     f = h->GetFunction("gaus");
-	pars = f->GetParameters();
-	double *epars = f->GetParErrors();
+	
+	f->GetParameters(pars);
+	double *tmps = f->GetParErrors();
+    memcpy(epars,tmps,7*sizeof(double));
+
+    ndf = f->GetNDF();
+    chi2 = f->GetChisquare();
 
 	filename = dirname+"result_nocom.C";
 	c1->SaveAs(&filename[0]);
 	filename = dirname+"result_nocom.png";
 	c1->SaveAs(&filename[0]);
 
-	filename = dirname+"result_nocom";
-	ofstream fout(&filename[0]);
 
-	int ndf = f->GetNDF();
-	double chi2 = f->GetChisquare();
+	return true;
+}
+int main(int argc,char **argv){
 
-	fout<< chi2 <<"\t"<< ndf <<"\t";
+    double *pars = new double[7];
+    double *epars = new double[7];
+    double chi2;
+    double ndf;
+    string source = argv[1];
+    string R = argv[2];
+    string Z = argv[3];
 
-	for(int i=0;i<7;i++){
-		if(i==1) fout << "0\t0\t";
-		fout << pars[i] <<"\t" << epars[i] <<"\t";
-	}
+    string dirname = "/junofs/production/public/users/zhangfy/non-uniform/offline_J17v1r1-Pre1/Examples/Tutorial/share/cls2/"+source+"/"+R+"_"+Z+"/";
+    string filename = dirname+"result_emc";
+    ofstream fout(&filename[0]);
+    int index = 0;
 
-	fout << "\n";
+    while(get_data(argc,argv,pars,epars,chi2,ndf,dirname,index)){
 
-	return 0;
+        fout<< chi2 <<"\t"<< ndf <<"\t";
+
+        for(int i=0;i<1;i++){
+            fout << pars[i] <<"\t" << epars[i] <<"\t";
+        }
+
+        fout << "\n";
+        index++;
+    }
+
+    return 0;
 }
