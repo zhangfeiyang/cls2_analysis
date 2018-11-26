@@ -16,7 +16,8 @@ double myfun(double *xx, double *par)
     double exp1 = TMath::Erf((mu-E-sigma*sigma*lambda)/(TMath::Sqrt(2)*sigma))-TMath::Erf((-E-sigma*sigma*lambda)/sqrt(2)/sigma);
     double constant = (gamma)/mu*(TMath::Erf((mu-E)/sqrt(2)/sigma)-TMath::Erf(-E/sqrt(2)/sigma));
 
-    return c*(gaus+exp_c1*exp1+constant)/(alpha+beta+gamma);
+    //return c*(gaus+exp_c1*exp1+constant)/(alpha+beta+gamma);
+    return c*(gaus+exp_c1*exp1)/(alpha+beta+gamma);
 }
 
 double myfun2(double *xx, double *par)
@@ -151,11 +152,11 @@ bool get_data(int argc,char **argv,double *pars,double *epars,double& chi2,doubl
 	pars[2] = mean;
 	pars[3] = sigma;
 	pars[4] = 0.01;
-	pars[5] = -0.1;
+	pars[5] = 0.1;
 	pars[6] = 0.01;
 	f->SetParLimits(1,0,1000);
 	f->SetParLimits(4,0,1000);
-	f->SetParLimits(5,-1,-0.1);
+	f->SetParLimits(5,0,10);
 	f->SetParLimits(6,0,1000);
 	f->SetParameters(pars);
 
