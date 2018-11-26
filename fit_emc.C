@@ -60,6 +60,26 @@ double myfun3(double *xx, double *par)
 }
 
 
+double myfun4(double *xx, double *par)
+{
+    double E = xx[0];
+    double c = par[0];
+    double alpha = par[1];
+    double mu = par[2];
+    double sigma = par[3];
+    double beta = par[4];
+    double lambda = par[5];
+    double gamma = par[6];
+    double pi = 3.141592654;
+
+    double gaus = alpha/sigma/sqrt(2*pi)*exp(-0.5*(E-mu)*(E-mu)/sigma/sigma);
+    double exp_c1 = (beta)*lambda*exp((sigma*sigma*lambda*lambda+2*lambda*E)/2)/(exp(lambda*mu)-1);
+    double exp1 = TMath::Erf((mu-E-sigma*sigma*lambda)/(TMath::Sqrt(2)*sigma))-TMath::Erf((-E-sigma*sigma*lambda)/sqrt(2)/sigma);
+    double constant = (gamma)/mu*(TMath::Erf((mu-E)/sqrt(2)/sigma)-TMath::Erf(-E/sqrt(2)/sigma));
+
+    return c*(exp_c1*exp1)/(alpha+beta+gamma);
+}
+
 
 bool get_data(int argc,char **argv,double *pars,double *epars,double& chi2,double &ndf,string dirname,int index)
 {
@@ -96,13 +116,14 @@ bool get_data(int argc,char **argv,double *pars,double *epars,double& chi2,doubl
 
 	if(max_entries*(index+1) > total_entries) return false;
 	
-	t->Draw("totalPE>>h(200,0,0)","totalPE>0","",max_entries*(index+1),max_entries*index);
+	cout << max_entries*(index+1) << "\t" << max_entries*index << "\n";
+	t->Draw("totalPE>>h(200,0,0)","totalPE>0","",max_entries,max_entries*index);
 	TH1F *h = (TH1F*)gDirectory->Get("h");
 
 	int maxbin = h->GetMaximumBin();
 	double maxbincenter = h->GetBinCenter(maxbin);
 
-	t->Draw(Form("totalPE>>h(100,%i,%i)",int(maxbincenter-100),int(maxbincenter+100)),"","",max_entries*(index+1),max_entries*index);	
+	t->Draw(Form("totalPE>>h(100,%i,%i)",int(maxbincenter-100),int(maxbincenter+100)),"","",max_entries,max_entries*index);	
 	h = (TH1F*)gDirectory->Get("h");
 	//h->Fit("gaus");
 	
@@ -129,17 +150,18 @@ bool get_data(int argc,char **argv,double *pars,double *epars,double& chi2,doubl
 	pars[1] = 0.99;
 	pars[2] = mean;
 	pars[3] = sigma;
-	pars[4] = 0.001;
-	pars[5] = 0.01;
+	pars[4] = 0.01;
+	pars[5] = -0.1;
 	pars[6] = 0.01;
 	f->SetParLimits(1,0,1000);
 	f->SetParLimits(4,0,1000);
-	f->SetParLimits(5,-10,0);
+	f->SetParLimits(5,-1,-0.1);
 	f->SetParLimits(6,0,1000);
 	f->SetParameters(pars);
 
 	f->SetParNames("C","#alpha","#mu","#sigma","#beta","#lambda","#gamma");
-	t->Draw(Form("totalPE>>h(%i,%i,%i)",int(5*sigma),int(mean-5*sigma),int(mean-5*sigma)+int(5*sigma)*2),"","",max_entries*(index+1),max_entries*index);	
+	t->Draw(Form("totalPE>>h(%i,%i,%i)",int(5*sigma),int(mean-10*sigma),int(mean-10*sigma)+int(5*sigma)*3),"","",max_entries,max_entries*index);	
+	//t->Draw(Form("totalPE>>h(%i,%i,%i)",int(5*sigma),int(mean-5*sigma),int(mean-5*sigma)+int(5*sigma)*2),"","",max_entries*(index+1),max_entries*index);	
 	//t->Draw(Form("totalPE>>h(%i,%i,%i)",int(5*sigma),int(mean-6*sigma),int(mean-6*sigma)+int(5*sigma)*2),"","",max_entries);	
 	//t->Draw(Form("totalPE>>h(%i,%i,%i)",int(5*sigma),int(mean-6*sigma),int(mean-6*sigma)+int(5*sigma)*2),"","");	
 	h = (TH1F*)gDirectory->Get("h");
@@ -148,18 +170,18 @@ bool get_data(int argc,char **argv,double *pars,double *epars,double& chi2,doubl
 	f->GetParameters(pars);
 
 	if(source=="Ge68"){
-		h->Fit(f,"M","",pars[2]-pars[3]*4,pars[2]+pars[3]);
-		h->Fit(f,"M","",pars[2]-pars[3]*4,pars[2]+pars[3]);
-		h->Fit(f,"M","",pars[2]-pars[3]*4,pars[2]+pars[3]);
+		h->Fit(f,"M","",pars[2]-pars[3]*10,pars[2]+pars[3]);
+		h->Fit(f,"M","",pars[2]-pars[3]*10,pars[2]+pars[3]);
+		h->Fit(f,"M","",pars[2]-pars[3]*10,pars[2]+pars[3]);
 	}
 	else{
-		h->Fit(f,"M","",int(mean-4*sigma),int(mean-5*sigma)+int(5*sigma)*2);
-		h->Fit(f,"M","",int(mean-4*sigma),int(mean-5*sigma)+int(5*sigma)*2);
-		h->Fit(f,"M","",int(mean-4*sigma),int(mean-5*sigma)+int(5*sigma)*2);
-		h->Fit(f,"M","",int(mean-4*sigma),int(mean-5*sigma)+int(5*sigma)*2);
-		h->Fit(f,"M","",int(mean-4*sigma),int(mean-5*sigma)+int(5*sigma)*2);
-		h->Fit(f,"M","",int(mean-4*sigma),int(mean-5*sigma)+int(5*sigma)*2);
-		h->Fit(f,"M","",int(mean-4*sigma),int(mean-5*sigma)+int(5*sigma)*2);
+		h->Fit(f,"M","",int(mean-10*sigma),int(mean-5*sigma)+int(5*sigma)*2);
+		h->Fit(f,"M","",int(mean-10*sigma),int(mean-5*sigma)+int(5*sigma)*2);
+		h->Fit(f,"M","",int(mean-10*sigma),int(mean-5*sigma)+int(5*sigma)*2);
+		h->Fit(f,"M","",int(mean-10*sigma),int(mean-5*sigma)+int(5*sigma)*2);
+		h->Fit(f,"M","",int(mean-10*sigma),int(mean-5*sigma)+int(5*sigma)*2);
+		h->Fit(f,"M","",int(mean-10*sigma),int(mean-5*sigma)+int(5*sigma)*2);
+		h->Fit(f,"M","",int(mean-10*sigma),int(mean-5*sigma)+int(5*sigma)*2);
 	}
 
 	f->GetParameters(pars);
@@ -171,8 +193,10 @@ bool get_data(int argc,char **argv,double *pars,double *epars,double& chi2,doubl
 
     TF1 *f2 = new TF1("f",myfun2,0,20000,7);
     TF1 *f3 = new TF1("f",myfun3,0,20000,7);
+    TF1 *f4 = new TF1("f",myfun4,0,20000,7);
 	f2->SetParameters(pars);
 	f3->SetParameters(pars);
+	f4->SetParameters(pars);
 
 	//f2->SetParameter(0,pars[0]);	
 	//f2->SetParameter(1,pars[1]);	
@@ -192,8 +216,10 @@ bool get_data(int argc,char **argv,double *pars,double *epars,double& chi2,doubl
 
 	f2->SetLineColor(kBlue);
 	f3->SetLineColor(kBlack);
+	f4->SetLineColor(kGreen);
 	f2->Draw("same");
 	f3->Draw("same");
+	f4->Draw("same");
 
 	filename = dirname+"result_emc.C";
 	c1->SaveAs(&filename[0]);
@@ -218,11 +244,11 @@ int main(int argc,char **argv){
 	string Z = argv[3];	
 
 	string dirname = "/junofs/production/public/users/zhangfy/non-uniform/offline_J17v1r1-Pre1/Examples/Tutorial/share/cls2/"+source+"/"+R+"_"+Z+"/";
-	string filename = dirname+"result_emc";
+	string filename = dirname+"result2_emc";
 	ofstream fout(&filename[0]);
 	int index = 0;
 
-	while(get_data(argc,argv,pars,epars,chi2,ndf,dirname,index)){
+	while(get_data(argc,argv,pars,epars,chi2,ndf,dirname,index) && index <1){
 		
 		fout<< chi2 <<"\t"<< ndf <<"\t";
 

@@ -9,8 +9,8 @@ for line in lines:
 	for source in sources:
 		R = line.split('_')[0]
 		Z = line.split('_')[1].strip('\n')
-		cmd = './fit_cb '+source+' '+R+' '+Z
-		os.system(cmd)
+		#cmd = './fit_cb '+source+' '+R+' '+Z
+		#os.system(cmd)
 		cmd = './fit_emc '+source+' '+R+' '+Z
 		os.system(cmd)
 		cmd = './fit_nocom '+source+' '+R+' '+Z

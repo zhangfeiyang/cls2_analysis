@@ -63,14 +63,14 @@ bool get_data(int argc,char **argv,double *pars,double *epars,double& chi2,doubl
 	if(source == "K40") edep = 1.4608;
 	
 	//t->Draw("totalPE>>h(200,0,0)",Form("totalPE>0 && TMath::Abs(edep-%f)<0.001",edep),"",max_entries);
-	t->Draw("totalPE>>h(200,0,0)",Form("totalPE>0 && TMath::Abs(edep-%f)<0.001",edep),"",max_entries*(index+1),max_entries*index);
+	t->Draw("totalPE>>h(200,0,0)",Form("totalPE>0 && TMath::Abs(edep-%f)<0.001",edep),"",max_entries,max_entries*index);
 
 	TH1F *h = (TH1F*)gDirectory->Get("h");
 
 	int maxbin = h->GetMaximumBin();
 	double maxbincenter = h->GetBinCenter(maxbin);
 
-	t->Draw(Form("totalPE>>h(100,%i,%i)",int(maxbincenter-100),int(maxbincenter+100)),Form("totalPE>0 && TMath::Abs(edep-%f)<0.0001",edep),"",max_entries*(index+1),max_entries*index);	
+	t->Draw(Form("totalPE>>h(100,%i,%i)",int(maxbincenter-100),int(maxbincenter+100)),Form("totalPE>0 && TMath::Abs(edep-%f)<0.0001",edep),"",max_entries,max_entries*index);	
 	//t->Draw(Form("totalPE>>h(100,%i,%i)",int(maxbincenter-100),int(maxbincenter+100)),Form("totalPE>0 && TMath::Abs(edep-%f)<0.001",edep),"",max_entries);	
 	h = (TH1F*)gDirectory->Get("h");
 	//h->Fit("gaus");
@@ -95,7 +95,7 @@ bool get_data(int argc,char **argv,double *pars,double *epars,double& chi2,doubl
 
 	//f->SetParameters(C*sqrt(2*3.14159)*sigma,0.99,mean,sigma,0.001,0.01,0.02);
 	//t->Draw(Form("totalPE>>h(%i,%i,%i)",int(5*sigma),int(mean-5*sigma),int(mean-5*sigma)+int(5*sigma)*2),Form("totalPE>0 && TMath::Abs(edep-%f)<0.001",edep),"",max_entries);	
-	t->Draw(Form("totalPE>>h(%i,%i,%i)",int(5*sigma),int(mean-5*sigma),int(mean-5*sigma)+int(5*sigma)*2),Form("totalPE>0 && TMath::Abs(edep-%f)<0.001",edep),"",max_entries*(index+1),max_entries*index);	
+	t->Draw(Form("totalPE>>h(%i,%i,%i)",int(5*sigma),int(mean-5*sigma),int(mean-5*sigma)+int(5*sigma)*2),Form("totalPE>0 && TMath::Abs(edep-%f)<0.001",edep),"",max_entries,max_entries*index);	
 
 
 	h = (TH1F*)gDirectory->Get("h");
