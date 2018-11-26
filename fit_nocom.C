@@ -133,7 +133,7 @@ int main(int argc,char **argv){
     ofstream fout(&filename[0]);
     int index = 0;
 
-    while(get_data(argc,argv,pars,epars,chi2,ndf,dirname,index))
+    while(get_data(argc,argv,pars,epars,chi2,ndf,dirname,index) && index <1)
 	{
 
         fout<< chi2 <<"\t"<< ndf <<"\t";

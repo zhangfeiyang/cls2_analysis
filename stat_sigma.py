@@ -9,8 +9,8 @@ line1s = file1.readlines()
 
 h = TH1F('h','',50,0,0)
 for i,line0 in enumerate(line0s):
-	data0 = line0.split()[4]
-	data1 = line1s[i].split()[6]
+	data0 = line0.split()[6]
+	data1 = line1s[i].split()[8]
 	print(data0,data1)
 	h.Fill(float(data0)-float(data1))
 	#h.Fill(float(data0))
